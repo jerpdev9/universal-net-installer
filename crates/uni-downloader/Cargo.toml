@@ -1,6 +1,18 @@
 [package]
 name = "uni-downloader"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Resumable, mirror-aware HTTPS downloader with progress and cancellation, gated on uni-verifier."
 
 [dependencies]
+uni-core.workspace = true
+uni-verifier.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

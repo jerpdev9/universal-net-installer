@@ -1,6 +1,13 @@
 [package]
 name = "uni-installer"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "InstallerBackend trait and registry for launching official distribution installers."
 
 [dependencies]
+uni-core.workspace = true
+uni-storage.workspace = true
+thiserror.workspace = true
+tracing.workspace = true

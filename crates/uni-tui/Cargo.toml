@@ -1,6 +1,19 @@
 [package]
 name = "uni-tui"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Terminal user interface for Universal Net Installer."
 
 [dependencies]
+uni-core.workspace = true
+uni-hardware.workspace = true
+uni-storage.workspace = true
+uni-network.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-appender.workspace = true

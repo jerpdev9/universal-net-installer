@@ -1,6 +1,16 @@
 [package]
 name = "uni-catalog"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Loads and validates the YAML distribution manifests describing installable operating systems."
 
 [dependencies]
+uni-core.workspace = true
+serde.workspace = true
+serde_yaml.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

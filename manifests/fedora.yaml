@@ -1,0 +1,21 @@
+# Fedora manifest. No version number is hardcoded in Rust: the installer
+# always reads this file at runtime. See docs/manifests.md.
+id: fedora
+name: Fedora
+vendor: "Fedora Project"
+homepage: "https://fedoraproject.org"
+
+releases:
+  - version: "latest"
+    architecture: x86_64
+    source:
+      type: iso
+      mirrors:
+        - "https://download.fedoraproject.org/pub/fedora/linux/releases"
+      path: "{version}/Workstation/x86_64/iso/"
+    verification:
+      sha256_path: "{version}/Workstation/x86_64/iso/Fedora-Workstation-{version}-x86_64-CHECKSUM"
+      gpg_signature_path: null
+      gpg_key_url: "https://getfedora.org/security/"
+    installer:
+      backend: fedora

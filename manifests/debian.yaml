@@ -1,0 +1,21 @@
+# Debian manifest. No version number is hardcoded in Rust: the installer
+# always reads this file at runtime. See docs/manifests.md.
+id: debian
+name: Debian
+vendor: "Software in the Public Interest"
+homepage: "https://www.debian.org"
+
+releases:
+  - version: "stable"
+    architecture: x86_64
+    source:
+      type: iso
+      mirrors:
+        - "https://cdimage.debian.org/debian-cd"
+      path: "{version}/amd64/iso-dvd/"
+    verification:
+      sha256_path: "{version}/amd64/iso-dvd/SHA256SUMS"
+      gpg_signature_path: "{version}/amd64/iso-dvd/SHA256SUMS.sign"
+      gpg_key_url: "https://www.debian.org/CD/verify"
+    installer:
+      backend: debian

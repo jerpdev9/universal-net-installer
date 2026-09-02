@@ -1,14 +1,16 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Foundation crate for Universal Net Installer.
+//!
+//! `uni-core` holds nothing domain-specific: shared error types, the
+//! instrumented process-execution wrapper every "shells out to a system
+//! tool" crate builds on, logging setup, and the [`arch::Architecture`]
+//! enum shared between hardware detection and catalog manifests. See
+//! `docs/architecture.md` for how this fits into the rest of the
+//! workspace.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod arch;
+pub mod error;
+pub mod logging;
+pub mod process;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use arch::Architecture;
+pub use error::{CoreError, Result};

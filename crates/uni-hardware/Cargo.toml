@@ -1,6 +1,18 @@
 [package]
 name = "uni-hardware"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Aggregates CPU, RAM, GPU, firmware, disk and network facts into a single HardwareSnapshot."
 
 [dependencies]
+uni-core.workspace = true
+uni-storage.workspace = true
+uni-network.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

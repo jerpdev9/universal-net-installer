@@ -1,6 +1,16 @@
 [package]
 name = "uni-network"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Network interface detection and a NetworkManager-backed abstraction for Ethernet/Wi-Fi."
 
 [dependencies]
+uni-core.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
