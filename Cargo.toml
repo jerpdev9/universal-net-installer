@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/uni-core",
+    "crates/uni-hardware",
+    "crates/uni-network",
+    "crates/uni-storage",
+    "crates/uni-catalog",
+    "crates/uni-downloader",
+    "crates/uni-verifier",
+    "crates/uni-installer",
+    "crates/uni-tui",
+]

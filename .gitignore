@@ -1,0 +1,33 @@
+# Rust
+/target/
+**/target/
+
+# Build
+build/
+dist/
+output/
+*.iso
+*.img
+*.raw
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Temporary
+tmp/
+.cache/
