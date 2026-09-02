@@ -1,14 +1,18 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Network interface detection and a `NetworkManager`-backed abstraction
+//! over Ethernet/Wi-Fi. See `docs/network.md`.
+//!
+//! Interface listing ([`detect_interfaces`]) reads `/sys/class/net`
+//! directly and needs no daemon running. Everything that requires
+//! NetworkManager (scanning, connecting, connectivity checks) goes through
+//! the [`NetworkBackend`] trait, implemented today by
+//! [`NetworkManagerBackend`].
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+mod backend;
+mod error;
+mod interfaces;
+mod wifi;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use backend::{NetworkBackend, NetworkManagerBackend};
+pub use error::{NetworkError, Result};
+pub use interfaces::{Interface, InterfaceKind, detect_interfaces, parse_interfaces_from};
+pub use wifi::{ConnectivityState, WifiNetwork, parse_connectivity, parse_wifi_scan};

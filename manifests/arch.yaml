@@ -1,0 +1,21 @@
+# Arch Linux manifest. No version number is hardcoded in Rust: the
+# installer always reads this file at runtime. See docs/manifests.md.
+id: arch
+name: "Arch Linux"
+vendor: "Arch Linux"
+homepage: "https://archlinux.org"
+
+releases:
+  - version: "rolling"
+    architecture: x86_64
+    source:
+      type: iso
+      mirrors:
+        - "https://geo.mirror.pkgbuild.com/iso/latest"
+      path: "archlinux-x86_64.iso"
+    verification:
+      sha256_path: "sha256sums.txt"
+      gpg_signature_path: "archlinux-x86_64.iso.sig"
+      gpg_key_url: "https://archlinux.org/master-keys/"
+    installer:
+      backend: arch

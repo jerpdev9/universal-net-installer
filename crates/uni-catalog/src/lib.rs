@@ -1,14 +1,11 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Loads and validates the YAML distribution manifests under
+//! `manifests/`. No distribution or version is hardcoded here — see
+//! `docs/manifests.md`.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+mod error;
+mod loader;
+mod manifest;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use error::{CatalogError, Result};
+pub use loader::{load_catalog_dir, load_from_path, load_from_str};
+pub use manifest::{InstallerRef, Manifest, Release, Source, SourceKind, Verification};

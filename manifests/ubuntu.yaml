@@ -1,0 +1,21 @@
+# Ubuntu manifest. No version number is hardcoded in Rust: the installer
+# always reads this file at runtime. See docs/manifests.md.
+id: ubuntu
+name: Ubuntu
+vendor: Canonical
+homepage: "https://ubuntu.com"
+
+releases:
+  - version: "latest-lts"
+    architecture: x86_64
+    source:
+      type: iso
+      mirrors:
+        - "https://releases.ubuntu.com"
+      path: "{version}/ubuntu-{version}-desktop-amd64.iso"
+    verification:
+      sha256_path: "{version}/SHA256SUMS"
+      gpg_signature_path: "{version}/SHA256SUMS.gpg"
+      gpg_key_url: "https://ubuntu.com/gpg"
+    installer:
+      backend: ubuntu

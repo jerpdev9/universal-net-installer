@@ -1,14 +1,14 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Integrity verification for downloaded distribution artifacts.
+//!
+//! SHA-256 is fully implemented. SHA-512 and GPG signature verification
+//! are modeled in [`VerificationMethod`] so the rest of the workspace can
+//! already reference them, but no code path executes either yet — see
+//! `docs/security.md`.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+mod error;
+mod sha256;
+mod verifier;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use error::{Result, VerifierError};
+pub use sha256::{sha256_hex, verify_sha256};
+pub use verifier::{Sha256Verifier, VerificationMethod, Verifier};
