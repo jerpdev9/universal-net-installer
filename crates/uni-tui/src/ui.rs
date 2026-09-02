@@ -1,18 +1,21 @@
-//! Renders the phase-1 dashboard: CPU/RAM/boot mode, disks and network
-//! interfaces. No selectable menu exists yet (Wi-Fi connect / OS pick /
-//! install are later phases) — this screen is read-only detection output.
+//! Renders the dashboard (CPU/RAM/boot mode, disks, network interfaces,
+//! connectivity) and, on top of it, the Wi-Fi scan/connect popups. OS
+//! pick / download / install screens don't exist yet — those are later
+//! phases.
 
 use ratatui::Frame;
-use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table};
+use ratatui::widgets::{
+    Block, Borders, Cell, Clear, List, ListItem, ListState, Paragraph, Row, Table,
+};
 
 use uni_hardware::HardwareSnapshot;
-use uni_network::InterfaceKind;
+use uni_network::{ConnectivityState, InterfaceKind};
 use uni_storage::DiskKind;
 
-use crate::app::App;
+use crate::app::{App, Screen};
 
 pub fn draw(frame: &mut Frame, app: &App) {
     let root = Block::default()
@@ -31,7 +34,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
         ])
         .split(inner);
 
-    draw_system_panel(frame, rows[0], app.snapshot.as_ref());
+    draw_system_panel(frame, rows[0], app);
 
     let columns = Layout::default()
         .direction(Direction::Horizontal)
@@ -39,15 +42,21 @@ pub fn draw(frame: &mut Frame, app: &App) {
         .split(rows[1]);
 
     draw_disks_panel(frame, columns[0], app.snapshot.as_ref());
-    draw_network_panel(frame, columns[1], app.snapshot.as_ref());
+    draw_network_panel(frame, columns[1], app);
 
     draw_status_bar(frame, rows[2], app);
+
+    match app.screen {
+        Screen::Dashboard => {}
+        Screen::WifiList => draw_wifi_list_popup(frame, app),
+        Screen::WifiPassword => draw_wifi_password_popup(frame, app),
+    }
 }
 
-fn draw_system_panel(frame: &mut Frame, area: Rect, snapshot: Option<&HardwareSnapshot>) {
+fn draw_system_panel(frame: &mut Frame, area: Rect, app: &App) {
     let block = Block::default().title(" SYSTEM ").borders(Borders::ALL);
 
-    let text = match snapshot {
+    let text = match app.snapshot.as_ref() {
         Some(s) => vec![
             Line::from(format!(
                 "CPU:  {} ({} cores / {} threads, {})",
@@ -129,13 +138,30 @@ fn draw_disks_panel(frame: &mut Frame, area: Rect, snapshot: Option<&HardwareSna
     frame.render_widget(table, area);
 }
 
-fn draw_network_panel(frame: &mut Frame, area: Rect, snapshot: Option<&HardwareSnapshot>) {
+fn draw_network_panel(frame: &mut Frame, area: Rect, app: &App) {
     let block = Block::default().title(" NETWORK ").borders(Borders::ALL);
 
-    let Some(snapshot) = snapshot else {
+    let Some(snapshot) = app.snapshot.as_ref() else {
         frame.render_widget(Paragraph::new("Detecting...").block(block), area);
         return;
     };
+
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
+
+    let sections = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(1), Constraint::Min(1)])
+        .split(inner);
+
+    let (label, color) = connectivity_label(app.connectivity);
+    frame.render_widget(
+        Paragraph::new(Line::from(vec![
+            Span::raw("Internet: "),
+            Span::styled(label, Style::default().fg(color)),
+        ])),
+        sections[0],
+    );
 
     let header = Row::new(vec!["IFACE", "KIND", "STATE"])
         .style(Style::default().add_modifier(Modifier::BOLD));
@@ -164,18 +190,140 @@ fn draw_network_panel(frame: &mut Frame, area: Rect, snapshot: Option<&HardwareS
         Constraint::Length(10),
         Constraint::Length(6),
     ];
-    let table = Table::new(rows, widths).header(header).block(block);
-    frame.render_widget(table, area);
+    let table = Table::new(rows, widths).header(header);
+    frame.render_widget(table, sections[1]);
+}
+
+fn connectivity_label(state: Option<ConnectivityState>) -> (&'static str, Color) {
+    match state {
+        Some(ConnectivityState::Online) => ("Online", Color::Green),
+        Some(ConnectivityState::Limited) => ("Limited", Color::Yellow),
+        Some(ConnectivityState::Offline) => ("Offline", Color::Red),
+        Some(ConnectivityState::Unknown) | None => ("Unknown", Color::DarkGray),
+    }
 }
 
 fn draw_status_bar(frame: &mut Frame, area: Rect, app: &App) {
-    let text = if let Some(err) = &app.error {
-        Line::from(vec![Span::styled(
-            format!("error: {err}"),
-            Style::default().fg(Color::Red),
-        )])
-    } else {
-        Line::from("[q] quit   [r] refresh")
+    if let Some(status) = &app.status {
+        let color = if status.is_error {
+            Color::Red
+        } else {
+            Color::Green
+        };
+        frame.render_widget(
+            Paragraph::new(Line::from(vec![Span::styled(
+                &status.text,
+                Style::default().fg(color),
+            )])),
+            area,
+        );
+        return;
+    }
+
+    if let Some(err) = &app.error {
+        frame.render_widget(
+            Paragraph::new(Line::from(vec![Span::styled(
+                format!("error: {err}"),
+                Style::default().fg(Color::Red),
+            )])),
+            area,
+        );
+        return;
+    }
+
+    let hints = match app.screen {
+        Screen::Dashboard => "[q] quit   [r] refresh   [w] wifi",
+        Screen::WifiList => "[↑/↓] select   [Enter] connect   [r] rescan   [Esc] back",
+        Screen::WifiPassword => "[Enter] connect   [Esc] cancel",
     };
-    frame.render_widget(Paragraph::new(text), area);
+    frame.render_widget(Paragraph::new(hints), area);
+}
+
+fn centered_rect(width: u16, height: u16, area: Rect) -> Rect {
+    let horizontal = Layout::horizontal([Constraint::Length(width)]).flex(Flex::Center);
+    let vertical = Layout::vertical([Constraint::Length(height)]).flex(Flex::Center);
+    let [area] = vertical.areas(area);
+    let [area] = horizontal.areas(area);
+    area
+}
+
+fn draw_wifi_list_popup(frame: &mut Frame, app: &App) {
+    let area = centered_rect(60, 14, frame.area());
+    frame.render_widget(Clear, area);
+
+    let block = Block::default()
+        .title(" SELECT WI-FI NETWORK ")
+        .borders(Borders::ALL);
+
+    if app.wifi_networks.is_empty() {
+        frame.render_widget(
+            Paragraph::new("No networks found. [r] to rescan.").block(block),
+            area,
+        );
+        return;
+    }
+
+    let items: Vec<ListItem> = app
+        .wifi_networks
+        .iter()
+        .map(|network| {
+            let marker = if network.in_use { "* " } else { "  " };
+            let lock = if network.security.trim() == "--" {
+                " "
+            } else {
+                "🔒"
+            };
+            ListItem::new(format!(
+                "{marker}{:<24} {:>3}% {lock}",
+                network.ssid, network.signal
+            ))
+        })
+        .collect();
+
+    let mut state = ListState::default().with_selected(Some(app.wifi_selected));
+    let list = List::new(items)
+        .block(block)
+        .highlight_style(
+            Style::default()
+                .add_modifier(Modifier::BOLD)
+                .fg(Color::Cyan),
+        )
+        .highlight_symbol("> ");
+
+    frame.render_stateful_widget(list, area, &mut state);
+}
+
+fn draw_wifi_password_popup(frame: &mut Frame, app: &App) {
+    let area = centered_rect(50, 5, frame.area());
+    frame.render_widget(Clear, area);
+
+    let ssid = app.wifi_pending_ssid.as_deref().unwrap_or("");
+    let block = Block::default()
+        .title(format!(" PASSWORD FOR {ssid} "))
+        .borders(Borders::ALL);
+
+    let masked: String = "*".repeat(app.password_input.chars().count());
+    frame.render_widget(Paragraph::new(masked).block(block), area);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn connectivity_label_maps_every_state() {
+        assert_eq!(
+            connectivity_label(Some(ConnectivityState::Online)).0,
+            "Online"
+        );
+        assert_eq!(
+            connectivity_label(Some(ConnectivityState::Limited)).0,
+            "Limited"
+        );
+        assert_eq!(
+            connectivity_label(Some(ConnectivityState::Offline)).0,
+            "Offline"
+        );
+        assert_eq!(connectivity_label(None).0, "Unknown");
+    }
 }

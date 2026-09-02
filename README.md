@@ -16,16 +16,17 @@ official installer of a Linux distribution.
 
 Windows is out of scope for the MVP.
 
-## Status: Phase 1 — architecture + hardware-detection prototype
+## Status: hardware detection + Wi-Fi connect
 
 The Cargo workspace, its 9 crates and their unit tests are implemented.
-`uni-tui` runs and shows real CPU/RAM/GPU/boot-mode/disk/network data.
+`uni-tui` runs and shows real CPU/RAM/GPU/boot-mode/disk/network data, and
+can scan for and connect to Wi-Fi networks through NetworkManager.
 Nothing downloads an ISO, modifies a disk, or launches an installer yet —
-see [`PLAN.md`](PLAN.md) for exactly what this phase covers and
+see [`PLAN.md`](PLAN.md) for exactly what's covered and
 [`docs/roadmap.md`](docs/roadmap.md) for what's next.
 
 ```bash
-cargo run -p uni-tui   # q to quit, r to refresh
+cargo run -p uni-tui   # q quit, r refresh, w scan Wi-Fi (Enter connect, Esc cancel)
 ```
 
 ## Documentation

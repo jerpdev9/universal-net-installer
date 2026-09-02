@@ -12,7 +12,7 @@ use crossterm::terminal::{
 use ratatui::Terminal;
 use ratatui::backend::{Backend, CrosstermBackend};
 
-use app::App;
+use app::{App, Screen};
 
 fn main() -> anyhow::Result<()> {
     let _log_guard = init_logging();
@@ -52,12 +52,34 @@ fn run<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> anyhow::Result<
             && let Event::Key(key) = event::read()?
             && key.kind == KeyEventKind::Press
         {
-            match key.code {
-                KeyCode::Char('q') | KeyCode::Esc => app.should_quit = true,
-                KeyCode::Char('r') => app.refresh(),
-                _ => {}
-            }
+            handle_key(app, key.code);
         }
     }
     Ok(())
+}
+
+fn handle_key(app: &mut App, code: KeyCode) {
+    match app.screen {
+        Screen::Dashboard => match code {
+            KeyCode::Char('q') | KeyCode::Esc => app.should_quit = true,
+            KeyCode::Char('r') => app.refresh(),
+            KeyCode::Char('w') => app.open_wifi_screen(),
+            _ => {}
+        },
+        Screen::WifiList => match code {
+            KeyCode::Esc => app.cancel_wifi_flow(),
+            KeyCode::Up | KeyCode::Char('k') => app.wifi_move_selection(-1),
+            KeyCode::Down | KeyCode::Char('j') => app.wifi_move_selection(1),
+            KeyCode::Char('r') => app.open_wifi_screen(),
+            KeyCode::Enter => app.wifi_confirm_selection(),
+            _ => {}
+        },
+        Screen::WifiPassword => match code {
+            KeyCode::Esc => app.cancel_wifi_flow(),
+            KeyCode::Enter => app.wifi_submit_password(),
+            KeyCode::Backspace => app.password_pop_char(),
+            KeyCode::Char(c) => app.password_push_char(c),
+            _ => {}
+        },
+    }
 }

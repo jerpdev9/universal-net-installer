@@ -6,10 +6,10 @@ Status legend: ✅ done · 🚧 partial · ⬜ not started
 |---|---|---|
 | 0 | Architecture and documentation | ✅ this document, `PLAN.md`, `architecture.md`, `security.md` |
 | 1 | Cargo Workspace | ✅ 9 crates, workspace-shared dependency versions |
-| 2 | TUI | ✅ dashboard shell (`uni-tui`); no menu/selection screens yet |
+| 2 | TUI | ✅ dashboard shell (`uni-tui`) plus a Wi-Fi scan/connect popup flow |
 | 3 | Hardware detection | ✅ CPU, RAM, GPU, boot mode, disks (`uni-hardware`, `uni-storage`) |
 | 4 | Networking | ✅ interface detection, `NetworkBackend` trait + `nmcli` backend (`uni-network`) |
-| 5 | Wi-Fi | 🚧 `scan_wifi`/`connect_wifi` implemented in `uni-network`; no TUI screen calls them yet |
+| 5 | Wi-Fi | ✅ `scan_wifi`/`connect_wifi` wired into `uni-tui`: `w` scans, arrow keys + Enter pick a network, a password popup handles secured networks, a connectivity indicator shows `Internet: Online/Limited/Offline/Unknown` |
 | 6 | Catalog YAML | ✅ schema + loader (`uni-catalog`), 4 manifests; not loaded by the TUI yet |
 | 7 | Downloader | 🚧 resumable/mirror-aware API implemented (`uni-downloader`); nothing invokes it |
 | 8 | SHA256 | ✅ implemented and tested (`uni-verifier`) |
@@ -35,10 +35,11 @@ absent.
 
 ## Suggested next phase
 
-**Phase 5 (Wi-Fi) → TUI integration**, since the backend already exists:
-add a network-selection screen to `uni-tui` that calls
-`NetworkManagerBackend::scan_wifi`/`connect_wifi`, and a connectivity
-indicator using `connectivity()`. This is the smallest phase that turns
+**Phase 6 (Catalog YAML) → TUI integration**, since the backend already
+exists: add a distribution/release picker screen to `uni-tui` that calls
+`uni_catalog::load_catalog_dir`, listing the four shipped manifests and
+their releases. This is the next-smallest phase that turns
 already-implemented, already-tested library code into something a user
-can actually drive, without opening any of the destructive-storage or
-download/verify/install work yet.
+can actually drive, and is a prerequisite for phase 7 (Downloader)
+needing an actual URL to fetch — without opening any of the
+destructive-storage or download/verify/install work yet.

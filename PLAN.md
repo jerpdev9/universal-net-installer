@@ -58,6 +58,21 @@ flow: hardware detection and its TUI presentation. Concretely:
 - No ISO is downloaded by anything the TUI does.
 - No installer is launched.
 
+## Phase 2 — Wi-Fi connect flow
+
+Added on top of phase 1, following the roadmap's suggested next step:
+`uni-tui` now has a Wi-Fi scan/connect flow built on `uni-network`'s
+already-implemented `NetworkManagerBackend`. Pressing `w` scans the
+detected Wi-Fi interface; arrow keys (or `j`/`k`) and Enter pick a
+network; open networks connect immediately, secured ones prompt for a
+password in a masked popup; `Esc` cancels back to the dashboard at any
+point. The network panel also shows a live `Internet:
+Online/Limited/Offline/Unknown` connectivity indicator. Still true: no
+download, no disk modification, no installer launch — this phase only
+exercises `NetworkBackend`, which `docs/network.md` already documented as
+safe (NetworkManager owns the WPA handshake; passwords never reach the
+logs).
+
 ## Crate map
 
 | Crate | Responsibility | Status |
@@ -66,7 +81,7 @@ flow: hardware detection and its TUI presentation. Concretely:
 | `uni-storage` | Disk/partition detection, boot-device id, `StorageGuard` (no execution) | Implemented |
 | `uni-network` | Interface detection, `NetworkBackend` (nmcli-backed) | Implemented |
 | `uni-hardware` | CPU/RAM/GPU/boot-mode detection, composes storage+network into `HardwareSnapshot` | Implemented |
-| `uni-tui` | Ratatui dashboard consuming the above | Implemented (detection only) |
+| `uni-tui` | Ratatui dashboard + Wi-Fi scan/connect flow | Implemented (detection + Wi-Fi) |
 | `uni-catalog` | YAML manifest schema + loader | Implemented, not wired in |
 | `uni-verifier` | SHA-256 (SHA-512/GPG designed, not implemented) | Implemented, not wired in |
 | `uni-downloader` | Resumable, mirror-aware HTTPS download + progress/cancel | Implemented, not wired in |
@@ -84,5 +99,5 @@ cargo fmt --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace
 cargo build --workspace
-cargo run -p uni-tui   # q to quit, r to refresh
+cargo run -p uni-tui   # q quit, r refresh, w scan Wi-Fi (Enter connect, Esc cancel)
 ```
