@@ -1766,6 +1766,7 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "uni-catalog",
  "uni-core",
  "uni-hardware",
  "uni-network",

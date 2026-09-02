@@ -11,6 +11,7 @@ uni-core.workspace = true
 uni-hardware.workspace = true
 uni-storage.workspace = true
 uni-network.workspace = true
+uni-catalog.workspace = true
 ratatui.workspace = true
 crossterm.workspace = true
 anyhow.workspace = true

@@ -73,6 +73,20 @@ exercises `NetworkBackend`, which `docs/network.md` already documented as
 safe (NetworkManager owns the WPA handshake; passwords never reach the
 logs).
 
+## Phase 3 — catalog browsing
+
+Added on top of phase 2, following the roadmap's suggested next step:
+`uni-tui` now loads `manifests/*.yaml` at startup via
+`uni_catalog::load_catalog_dir` and lets the user browse it. Pressing `o`
+opens the distribution list (name, vendor, release count); Enter drills
+into that distribution's releases (version, architecture, source kind,
+installer backend); Enter on a release records the choice in the status
+line — `"selected Ubuntu latest-lts — download not implemented yet
+(docs/roadmap.md phase 7)"` — and returns to the dashboard. `Esc` cancels
+back a level at any point, same as the Wi-Fi flow. Still true: no
+download, no disk modification, no installer launch — this phase only
+reads and displays already-shipped YAML files.
+
 ## Crate map
 
 | Crate | Responsibility | Status |
@@ -81,8 +95,8 @@ logs).
 | `uni-storage` | Disk/partition detection, boot-device id, `StorageGuard` (no execution) | Implemented |
 | `uni-network` | Interface detection, `NetworkBackend` (nmcli-backed) | Implemented |
 | `uni-hardware` | CPU/RAM/GPU/boot-mode detection, composes storage+network into `HardwareSnapshot` | Implemented |
-| `uni-tui` | Ratatui dashboard + Wi-Fi scan/connect flow | Implemented (detection + Wi-Fi) |
-| `uni-catalog` | YAML manifest schema + loader | Implemented, not wired in |
+| `uni-tui` | Ratatui dashboard + Wi-Fi scan/connect + catalog browse flows | Implemented (detection + Wi-Fi + catalog) |
+| `uni-catalog` | YAML manifest schema + loader | Implemented, wired into `uni-tui` |
 | `uni-verifier` | SHA-256 (SHA-512/GPG designed, not implemented) | Implemented, not wired in |
 | `uni-downloader` | Resumable, mirror-aware HTTPS download + progress/cancel | Implemented, not wired in |
 | `uni-installer` | `InstallerBackend` trait + registry, no concrete backends | Implemented, not wired in |
@@ -99,5 +113,7 @@ cargo fmt --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace
 cargo build --workspace
-cargo run -p uni-tui   # q quit, r refresh, w scan Wi-Fi (Enter connect, Esc cancel)
+cargo run -p uni-tui
+# q quit, r refresh, w scan Wi-Fi (Enter connect, Esc cancel)
+# o browse OS catalog (Enter drills in, Esc cancels)
 ```

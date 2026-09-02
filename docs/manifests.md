@@ -57,8 +57,9 @@ becomes available — no Rust code change, no rebuild.
 | `arch` | `rolling` | iso | `geo.mirror.pkgbuild.com`; Arch ships one always-current ISO name |
 
 These mirror URLs and path templates are illustrative of each project's
-real download layout, not resolved or fetched by anything in phase 1 —
-see `docs/roadmap.md` phase 7.
+real download layout. `uni-tui`'s catalog browser (`o`) shows them today;
+nothing yet resolves `Source::resolve_url` against a mirror or fetches
+anything — see `docs/roadmap.md` phase 7.
 
 ## Loading and validation
 

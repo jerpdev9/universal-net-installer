@@ -1,7 +1,7 @@
 //! Renders the dashboard (CPU/RAM/boot mode, disks, network interfaces,
-//! connectivity) and, on top of it, the Wi-Fi scan/connect popups. OS
-//! pick / download / install screens don't exist yet — those are later
-//! phases.
+//! connectivity) and, on top of it, the Wi-Fi scan/connect popups and the
+//! distribution/release catalog popups. Download and install screens
+//! don't exist yet — those are later phases.
 
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
@@ -50,6 +50,8 @@ pub fn draw(frame: &mut Frame, app: &App) {
         Screen::Dashboard => {}
         Screen::WifiList => draw_wifi_list_popup(frame, app),
         Screen::WifiPassword => draw_wifi_password_popup(frame, app),
+        Screen::DistroList => draw_distro_list_popup(frame, app),
+        Screen::ReleaseList => draw_release_list_popup(frame, app),
     }
 }
 
@@ -232,9 +234,11 @@ fn draw_status_bar(frame: &mut Frame, area: Rect, app: &App) {
     }
 
     let hints = match app.screen {
-        Screen::Dashboard => "[q] quit   [r] refresh   [w] wifi",
+        Screen::Dashboard => "[q] quit   [r] refresh   [w] wifi   [o] operating systems",
         Screen::WifiList => "[↑/↓] select   [Enter] connect   [r] rescan   [Esc] back",
         Screen::WifiPassword => "[Enter] connect   [Esc] cancel",
+        Screen::DistroList => "[↑/↓] select   [Enter] releases   [Esc] back",
+        Screen::ReleaseList => "[↑/↓] select   [Enter] choose   [Esc] back",
     };
     frame.render_widget(Paragraph::new(hints), area);
 }
@@ -304,6 +308,79 @@ fn draw_wifi_password_popup(frame: &mut Frame, app: &App) {
 
     let masked: String = "*".repeat(app.password_input.chars().count());
     frame.render_widget(Paragraph::new(masked).block(block), area);
+}
+
+fn draw_distro_list_popup(frame: &mut Frame, app: &App) {
+    let area = centered_rect(60, 12, frame.area());
+    frame.render_widget(Clear, area);
+
+    let block = Block::default()
+        .title(" OPERATING SYSTEM ")
+        .borders(Borders::ALL);
+
+    let items: Vec<ListItem> = app
+        .catalog
+        .iter()
+        .map(|manifest| {
+            ListItem::new(format!(
+                "{:<20} {:<24} {} release(s)",
+                manifest.name,
+                manifest.vendor,
+                manifest.releases.len()
+            ))
+        })
+        .collect();
+
+    let mut state = ListState::default().with_selected(Some(app.distro_selected));
+    let list = List::new(items)
+        .block(block)
+        .highlight_style(
+            Style::default()
+                .add_modifier(Modifier::BOLD)
+                .fg(Color::Cyan),
+        )
+        .highlight_symbol("> ");
+
+    frame.render_stateful_widget(list, area, &mut state);
+}
+
+fn draw_release_list_popup(frame: &mut Frame, app: &App) {
+    let area = centered_rect(60, 12, frame.area());
+    frame.render_widget(Clear, area);
+
+    let Some(manifest) = app.catalog.get(app.distro_selected) else {
+        return;
+    };
+
+    let block = Block::default()
+        .title(format!(" {} RELEASES ", manifest.name.to_uppercase()))
+        .borders(Borders::ALL);
+
+    let items: Vec<ListItem> = manifest
+        .releases
+        .iter()
+        .map(|release| {
+            ListItem::new(format!(
+                "{:<16} {:<10} via {:<10} -> {}",
+                release.version,
+                release.architecture,
+                format!("{:?}", release.source.kind).to_lowercase(),
+                release.installer.backend
+            ))
+        })
+        .collect();
+
+    let mut state = ListState::default().with_selected(Some(app.release_selected));
+    let list = List::new(items)
+        .block(block)
+        .highlight_style(
+            Style::default()
+                .add_modifier(Modifier::BOLD)
+                .fg(Color::Cyan),
+        )
+        .highlight_symbol("> ");
+
+    frame.render_stateful_widget(list, area, &mut state);
 }
 
 #[cfg(test)]

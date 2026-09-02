@@ -25,6 +25,7 @@ fn main() -> anyhow::Result<()> {
 
     let mut app = App::new();
     app.refresh();
+    app.load_catalog();
     let result = run(&mut terminal, &mut app);
 
     disable_raw_mode()?;
@@ -64,6 +65,7 @@ fn handle_key(app: &mut App, code: KeyCode) {
             KeyCode::Char('q') | KeyCode::Esc => app.should_quit = true,
             KeyCode::Char('r') => app.refresh(),
             KeyCode::Char('w') => app.open_wifi_screen(),
+            KeyCode::Char('o') => app.open_distro_screen(),
             _ => {}
         },
         Screen::WifiList => match code {
@@ -79,6 +81,20 @@ fn handle_key(app: &mut App, code: KeyCode) {
             KeyCode::Enter => app.wifi_submit_password(),
             KeyCode::Backspace => app.password_pop_char(),
             KeyCode::Char(c) => app.password_push_char(c),
+            _ => {}
+        },
+        Screen::DistroList => match code {
+            KeyCode::Esc => app.cancel_distro_flow(),
+            KeyCode::Up | KeyCode::Char('k') => app.distro_move_selection(-1),
+            KeyCode::Down | KeyCode::Char('j') => app.distro_move_selection(1),
+            KeyCode::Enter => app.distro_confirm_selection(),
+            _ => {}
+        },
+        Screen::ReleaseList => match code {
+            KeyCode::Esc => app.back_to_distro_list(),
+            KeyCode::Up | KeyCode::Char('k') => app.release_move_selection(-1),
+            KeyCode::Down | KeyCode::Char('j') => app.release_move_selection(1),
+            KeyCode::Enter => app.release_confirm_selection(),
             _ => {}
         },
     }
